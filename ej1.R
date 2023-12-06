@@ -7,6 +7,16 @@ datos <- read_csv("flights.csv")  #Read_csv lee el archivo elegido
 columnas <- datos %>% 
   select(distance , price)  #Seleccionamos dos columnas
 
+# Gráficos
+# Histogramas
+hist_price <- ggplot(columnas, aes(x = price)) + geom_histogram(fill = "blue", bins = 30) + ggtitle("Histograma de Precios")
+hist_distance <- ggplot(columnas, aes(x = distance)) + geom_histogram(fill = "green", bins = 30) + ggtitle("Histograma de Distancias")
+
+# Imprimir gráficos
+print(hist_price)
+print(hist_distance)
+
+
 #Estimación puntual de las medias y cuasivarianzas muestrales. Análisis de los resultados.
 
 mediap <- mean(columnas$price)  #media de los precios
@@ -21,7 +31,11 @@ cat("Estimación puntual de la cuasivarianza de los precios:", cuasivarianzap, "
 cat("Estimación puntual de la media de la distancia:", mediad, "\n")
 cat("Estimación puntual de la cuasivarianza de la distancia:", cuasivarianzad, "\n")
 
-#Podemos observar que la media de precios es mayor a la media de distancia y por lo tanto la cuasivarianza de precios también es la mayor
+#Análisis de los resultados
+#Hemos realizado una estimación puntual de las medias y cuasivarianzas muestrales para los precios y distancias de vuelos. 
+#Los resultados revelan que la media de los precios es de aproximadamente 957.38, indicando el valor promedio en la muestra, mientras que la cuasivarianza es alta (131269.9), sugiriendo una variabilidad significativa en los precios. 
+#En cuanto a las distancias, la media es de alrededor de 546.96, señalando el promedio en la muestra, y la cuasivarianza (43618.86) indica una variabilidad menor que en los precios
+
 
 #Estimación por intervalos de confianza al 95% de las medias poblacionales, varianzaspoblacionales, diferencia de medias poblacionales y cociente de varianzaspoblacionales. Análisis de los resultados
 # Intervalos de confianza al 95% para medias y varianzas
@@ -48,7 +62,6 @@ ci_mean_difference <- c(mean_difference - t_critical_difference * se_difference,
 var_ratio <- cuasivarianzap / cuasivarianzad
 ci_var_ratio <- c(var_ratio / qf(1 - 0.025, df1 = n_price - 1, df2 = n_distance - 1), var_ratio / qf(0.025, df1 = n_price - 1, df2 = n_distance - 1))
 
-# Print the results
 cat("Intervalo de confianza al 95% para la media de los precios:", ci_mean_price, "\n")
 cat("Intervalo de confianza al 95% para la varianza de los precios:", ci_var_price, "\n")
 
@@ -57,6 +70,15 @@ cat("Intervalo de confianza al 95% para la varianza de la distancia:", ci_var_di
 
 cat("Intervalo de confianza al 95% para la diferencia de medias:", ci_mean_difference, "\n")
 cat("Intervalo de confianza al 95% para el cociente de varianzas:", ci_var_ratio, "\n")
+
+##Análisis de los resultados
+#Los intervalos de confianza al 95% proporcionan información esencial sobre diversos parámetros estadísticos en base a la muestra de datos.
+#Para la distancia, el intervalo [43387.92, 43851.66] indica, con un 95% de confianza, la posible variabilidad en las distancias en la población.
+#La diferencia de medias entre los precios y las distancias se encuentra en el intervalo [408.8476, 411.9914], permitiendo evaluar si hay una diferencia significativa entre ambas variables.
+#El cociente de varianzas, con un intervalo de [2.986936, 3.032185], sugiere una posible disparidad significativa entre las varianzas de los precios y las distancias.
+#En cuanto a los precios, el intervalo para la media es [958.7369, 956.0132], brindando una estimación precisa de la media poblacional. La varianza de los precios, en el rango [130574.9, 131970.5], indica la variabilidad de los precios en la población.
+#Finalmente, el intervalo para la media de la distancia, [547.7406, 546.1705], ofrece una estimación precisa de la media poblacional de las distancias.
+
 
 #Tests No Paramétricos:
 #a) Para una sola muestra:
@@ -107,6 +129,10 @@ cat("Test Paramétrico para 'price' y 'distance': p-value =", t.test(columnas$pr
 cat("Test Paramétrico para la diferencia entre 'price' y 'distance': p-value =", t.test(columnas$price, columnas$distance, paired = TRUE)$p.value, "\n")
 
 
+#Interpretación de los resultados procedentes de los contrastes de hipótesis ycomparación de los resultados obtenidos en la es�mación por intervalos de confianza.
+#Los resultados de las pruebas de hipótesis, con un nivel de significación del 5% (α = 0.05), revelan de manera contundente que las medianas y medias de las variables 'price' y 'distance' son estadísticamente diferentes de cero. Los valores p asociados, todos iguales a cero, proporcionan evidencia sólida para rechazar las hipótesis nulas en todas las pruebas, indicando disparidades significativas en las distribuciones de precios y distancias.
+#Tanto las pruebas no paramétricas (Wilcoxon) como las paramétricas (t-test) respaldan la conclusión de que las muestras provienen de poblaciones con características distintas. Estos resultados ofrecen una perspectiva sobre las diferencias estadísticas entre precios y distancias en la muestra analizada.
+
 # Gráficos
 # Histogramas
 hist_price <- ggplot(columnas, aes(x = price)) + geom_histogram(fill = "blue", bins = 30) + ggtitle("Histograma de Precios")
@@ -140,41 +166,68 @@ print(bar_cuasivarianzas)
 
 
 # Gráficos
-# Intervalo de confianza para medias
-ggplot(df_ci_mean_price, aes(x = variable, y = (ci_upper + ci_lower) / 2, ymin = ci_lower, ymax = ci_upper)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.6)) +
-  geom_point(position = position_dodge(width = 0.6)) +
+# Gráfico para intervalos de confianza de medias
+bar_ci_mean <- ggplot(data = data.frame(variable = c("Precio", "Distancia"), media = c(mediap, mediad)), aes(x = variable, y = media, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", width = 0.5) +
   labs(title = "Intervalo de Confianza al 95% para Medias",
        x = "Variable",
        y = "Media") +
+  geom_errorbar(aes(ymin = c(ci_mean_price[1], ci_mean_distance[1]), ymax = c(ci_mean_price[2], ci_mean_distance[2])), position = position_dodge(0.5), width = 0.25) +
   theme_minimal()
 
-# Intervalo de confianza para varianzas
-ggplot(df_ci_var_price, aes(x = variable, y = (ci_upper + ci_lower) / 2, ymin = ci_lower, ymax = ci_upper)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.6)) +
-  geom_point(position = position_dodge(width = 0.6)) +
-  labs(title = "Intervalo de Confianza al 95% para Varianzas",
+# Gráfico para intervalos de confianza de varianzas
+bar_ci_var <- ggplot(data = data.frame(variable = c("Precio", "Distancia"), cuasivarianza = c(cuasivarianzap, cuasivarianzad)), aes(x = variable, y = cuasivarianza, fill = variable)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", width = 0.5) +
+  labs(title = "Intervalo de Confianza al 95% para Cuasivarianzas",
        x = "Variable",
-       y = "Varianza") +
+       y = "Cuasivarianza") +
+  geom_errorbar(aes(ymin = c(ci_var_price[1], ci_var_distance[1]), ymax = c(ci_var_price[2], ci_var_distance[2])), position = position_dodge(0.5), width = 0.25) +
   theme_minimal()
 
-# Intervalo de confianza para diferencia de medias
-ggplot(df_ci_mean_difference, aes(x = variable, y = (ci_upper + ci_lower) / 2, ymin = ci_lower, ymax = ci_upper)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.6)) +
-  geom_point(position = position_dodge(width = 0.6)) +
-  labs(title = "Intervalo de Confianza al 95% para Diferencia de Medias",
+# Gráfico para intervalos de confianza de diferencia de medias y cociente de varianzas
+bar_ci_difference_ratio <- ggplot(data = data.frame(variable = c("Diferencia de Medias", "Cociente de Varianzas"), valor = c(mean_difference, var_ratio)), aes(x = variable, y = valor)) +
+  geom_bar(stat = "identity", position = "dodge", color = "black", width = 0.5) +
+  labs(title = "Intervalo de Confianza al 95% para Diferencia de Medias y Cociente de Varianzas",
        x = "Variable",
-       y = "Diferencia de Medias") +
+       y = "Valor") +
+  geom_errorbar(aes(ymin = c(ci_mean_difference[1], ci_var_ratio[1]), ymax = c(ci_mean_difference[2], ci_var_ratio[2])), position = position_dodge(0.5), width = 0.25) +
   theme_minimal()
 
-# Intervalo de confianza para cociente de varianzas
-ggplot(df_ci_var_ratio, aes(x = variable, y = (ci_upper + ci_lower) / 2, ymin = ci_lower, ymax = ci_upper)) +
-  geom_errorbar(width = 0.2, position = position_dodge(width = 0.6)) +
-  geom_point(position = position_dodge(width = 0.6)) +
-  labs(title = "Intervalo de Confianza al 95% para Cociente de Var
+# Imprimir gráficos
+print(bar_ci_mean)
+print(bar_ci_var)
+print(bar_ci_difference_ratio)
 
 
+library(tidyverse)
 
+# Gráfico para tests no paramétricos de una variable
+bar_plot_no_parametric <- ggplot(data = data.frame(Test = c("Price", "Distance", "Price vs Distance"), p_value = c(wilcox.test(columnas$price, mu = 0)$p.value, wilcox.test(columnas$distance, mu = 0)$p.value, wilcox.test(columnas$price, columnas$distance)$p.value)), aes(x = Test, y = -log10(p_value), fill = Test)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Tests No Paramétricos",
+       x = "Variable o Comparación",
+       y = "-log10(p-value)") +
+  theme_minimal()
 
+# Gráfico para tests paramétricos de una variable
+bar_plot_parametric_one_var <- ggplot(data = data.frame(Test = c("Price", "Distance"), p_value = c(t.test(columnas$price, mu = 0)$p.value, t.test(columnas$distance, mu = 0)$p.value)), aes(x = Test, y = -log10(p_value), fill = Test)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Tests Paramétricos (Una Variable)",
+       x = "Variable",
+       y = "-log10(p-value)") +
+  theme_minimal()
+
+# Gráfico para tests paramétricos de dos variables
+bar_plot_parametric_two_var <- ggplot(data = data.frame(Test = c("Price vs Distance", "Difference Price-Distance"), p_value = c(t.test(columnas$price, columnas$distance)$p.value, t.test(columnas$price, columnas$distance, paired = TRUE)$p.value)), aes(x = Test, y = -log10(p_value), fill = Test)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  labs(title = "Tests Paramétricos (Dos Variables)",
+       x = "Comparación",
+       y = "-log10(p-value)") +
+  theme_minimal()
+
+# Imprimir gráficos
+print(bar_plot_no_parametric)
+print(bar_plot_parametric_one_var)
+print(bar_plot_parametric_two_var)
 
 
