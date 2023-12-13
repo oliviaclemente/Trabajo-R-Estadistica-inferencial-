@@ -4,8 +4,6 @@ author: "Olivia Clemente"
 output: html_document
 ---
 
-
-
 ```{R, echo= FALSE}
 library(tidyverse)
 
@@ -71,7 +69,6 @@ print(bar_cuasivarianzas)
 #En cuanto a las distancias, la media es de alrededor de 546.96, señalando el promedio en la muestra, y la cuasivarianza (43618.86) indica una variabilidad menor que en los precios
 
 ```
-
 
 ```{R, echo= FALSE}
 
@@ -239,151 +236,4 @@ print(bar_plot_parametric_one_var)
 print(bar_plot_parametric_two_var)
 
 
-```
-
-```{R, echo= FALSE}
-library(tidyverse)
-
-# Función para cargar datos
-load_data <- function(file_path) {
-  read_csv(file_path)
-}
-
-# Función para realizar estimación puntual
-estimacion_puntual <- function(column) {
-  media <- mean(column)
-  cuasivarianza <- var(column)
-  return(list(media = media, cuasivarianza = cuasivarianza))
-}
-
-# Función para realizar intervalos de confianza
-intervalo_confianza <- function(column, level = 0.95) {
-  n <- length(column)
-  t_critical <- qt(1 - (1 - level) / 2, df = n - 1, lower.tail = FALSE)
-  
-  media <- mean(column)
-  cuasivarianza <- var(column)
-  
-  ci_mean <- c(media - t_critical * sqrt(cuasivarianza / n), media + t_critical * sqrt(cuasivarianza / n))
-  ci_var <- c((n - 1) * cuasivarianza / qchisq(1 - (1 - level) / 2, df = n - 1), (n - 1) * cuasivarianza / qchisq((1 - level) / 2, df = n - 1))
-  
-  return(list(ci_mean = ci_mean, ci_var = ci_var))
-}
-
-# Función para realizar pruebas no paramétricas
-test_no_parametrico <- function(column, mu = 0) {
-  return(wilcox.test(column, mu = mu))
-}
-
-# Función para realizar pruebas paramétricas
-test_parametrico <- function(column, mu = 0, paired = FALSE) {
-  if (paired) {
-    return(t.test(column, mu = mu, paired = TRUE))
-  } else {
-    return(t.test(column, mu = mu))
-  }
-}
-
-# Función para crear histograma
-histograma <- function(column, color, bins = 30) {
-  ggplot(column, aes(x = column)) + geom_histogram(fill = color, bins = bins) + ggtitle(paste("Histograma de", colnames(column)))
-}
-
-# Función para crear gráfico de barras
-grafico_barras <- function(datos, variable, medida, titulo) {
-  ggplot(data = datos, aes(x = variable, y = medida, fill = variable)) +
-    geom_bar(stat = "identity", position = "dodge", color = "black", width = 0.5) +
-    labs(title = titulo, x = "Variable", y = medida) +
-    theme_minimal()
-}
-
-# Función para imprimir gráficos
-imprimir_grafico <- function(grafico) {
-  print(grafico)
-}
-
-```
-
-
-```{R, echo= FALSE}
-library(readr)
-
-# Especificar tipos de columna
-tipos_columnas <- cols(
-  from = col_character(),
-  to = col_character(),
-  flightType = col_character(),
-  agency = col_character(),
-  date = col_character(),
-  travelCode = col_double(),
-  userCode = col_double(),
-  price = col_double(),
-  time = col_double(),
-  distance = col_double()
-)
-
-# Cargar datos con especificación de tipos
-datos <- read_csv("flights.csv", col_types = tipos_columnas)
-
-# Seleccionar las columnas de interés
-columnas <- datos %>% select(distance, price)
-
-# Estimación puntual de la media y cuasivarianza de 'price'
-resultado_estimacion_precio <- estimacion_puntual(columnas$price)
-cat("Estimación puntual de la media de los precios:", resultado_estimacion_precio$media, "\n")
-cat("Estimación puntual de la cuasivarianza de los precios:", resultado_estimacion_precio$cuasivarianza, "\n")
-
-# Intervalo de confianza para la media y la varianza de 'price'
-resultado_intervalo_precio <- intervalo_confianza(columnas$price)
-cat("Intervalo de confianza al 95% para la media de los precios:", resultado_intervalo_precio$ci_mean, "\n")
-cat("Intervalo de confianza al 95% para la varianza de los precios:", resultado_intervalo_precio$ci_var, "\n")
-
-```
-
-
-```{R, echo= FALSE}
-# Cargar bibliotecas
-library(tidyverse)
-library(car)
-library(rstatix)
-
-# Leer los datos
-datos <- read_csv("flights.csv")
-
-# Seleccionar las columnas price, time, distance
-datos_seleccionados <- datos %>%
-  select(price, time, distance)
-
-# Reorganizar datos para los contrastes
-datos_melted <- gather(datos_seleccionados, key = "variable", value = "value")
-
-# Contrastar homogeneidad de varianzas (Levene's test)
-levene_test_result <- leveneTest(value ~ variable, data = datos_melted)
-
-# Contrastar igualdad de medianas (Kruskal-Wallis)
-kruskal_test_result <- kruskal.test(value ~ variable, data = datos_melted)
-
-# Contrastar igualdad de medias (ANOVA)
-anova_test_result <- aov(value ~ variable, data = datos_melted)
-
-# Almacenar resultados en un data frame
-resultados <- data.frame(
-  Test = c("Levene's Test", "Kruskal-Wallis Test", "ANOVA"),
-  p_value = c(levene_test_result$"Pr(>F)", kruskal_test_result$p.value, summary(anova_test_result)$'Pr(>F)'[1])
-)
-
-# Imprimir resultados
-print(resultados)
-
-
-
-#Analisis de resultados:
-#Contraste de Levene:
-#La prueba de Levene para la homogeneidad de varianza muestra un valor p muy pequeño (p < 2.2e-16), indicando que hay evidencia significativa para rechazar la hipótesis nula de igualdad de varianzas entre los grupos. Esto sugiere que las varianzas no son iguales entre los grupos.
-
-#Contraste de Kruskal-Wallis:
-#La prueba de Kruskal-Wallis arroja un valor p extremadamente pequeño (p < 2.2e-16), lo que sugiere que hay diferencias significativas en las medianas entre los grupos. Este resultado indica que al menos un grupo tiene una mediana diferente de los demás.
-
-#Contraste de ANOVA:
-#La prueba de ANOVA también muestra un valor p muy pequeño (p < 2e-16), indicando que hay diferencias significativas en las medias entre los grupos. Esto concuerda con los resultados de Kruskal-Wallis y refuerza la idea de que al menos un grupo tiene una media diferente.
 ```
